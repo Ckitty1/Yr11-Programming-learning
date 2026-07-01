@@ -1,0 +1,71 @@
+# Importing the pygame library
+import pygame
+pygame.init()
+
+# ---------------window setup---------------
+# Setting screen size
+win_width = 750
+win_height = 750
+
+# naming the window
+win = pygame.display.set_mode((win_width, win_height))
+pygame.display.set_caption('Demo Platformer')
+# ------------------------------------------
+
+# ---------------world setup---------------
+tile_size = 75
+#-----------------------------------------
+
+# ---------------character setup---------------
+# setting the demensions and speed of the character
+width = 30
+height = 30
+vel = 5
+
+# Setting the starting x and y positions of the character
+x = 100
+y = 650
+# ---------------------------------------------
+
+# Game loop
+run = True
+while run:
+    pygame.time.delay(10)
+    
+    # stops the game when the window closes
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+
+    # setting background colour
+    win.fill((255,255,255))
+
+    # drawing the character
+    pygame.draw.rect(win, (0,0,0), (x,y,width,height), 0, 10)
+
+# ---------------character movement code---------------
+    key = pygame.key.get_pressed()
+    # as long as a key is being held, the character moves
+    # only able to move within a boundry of the edge of the screen
+
+    if (key[pygame.K_LEFT] or key[pygame.K_a]) and x > vel:
+        x -= vel
+
+    elif (key[pygame.K_RIGHT] or key[pygame.K_d]) and x < win_width - width - vel:
+        x += vel
+    
+    elif (key[pygame.K_DOWN] or key[pygame.K_s]) and y < win_height - height - vel:
+        y += vel
+    
+    elif (key[pygame.K_UP] or key[pygame.K_w]) and y > vel:
+        y -= vel
+# -----------------------------------------------------
+
+    elif key[pygame.K_ESCAPE]:
+        run = False
+
+    # updates the game constantly so that the drawings appear and change
+    pygame.display.update()
+
+pygame.quit
+exit()
