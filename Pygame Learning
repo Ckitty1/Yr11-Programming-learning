@@ -2,7 +2,7 @@
 import pygame
 pygame.init()
 
-# ---------------window setup---------------
+# ------------------------------window setup------------------------------
 # Setting screen size
 win_width = 750
 win_height = 750
@@ -10,22 +10,114 @@ win_height = 750
 # naming the window
 win = pygame.display.set_mode((win_width, win_height))
 pygame.display.set_caption('Demo Platformer')
-# ------------------------------------------
+# ------------------------------------------------------------------------
 
-# ---------------world setup---------------
+# ------------------------------loading images------------------------------
+dirt_img = pygame.image.load('images/dirt.png')
+player_img = pygame.image.load('images/white_character_square.png')
+# --------------------------------------------------------------------------
+
+# ------------------------------world setup------------------------------
+lvl1_data = [
+    [1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,1,1,1],
+    [1,0,0,0,0,0,1,1,1,1],  
+    [1,0,0,0,0,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1]
+]
+
 tile_size = 75
-#-----------------------------------------
 
-# ---------------character setup---------------
-# setting the demensions and speed of the character
-width = 30
-height = 30
-vel = 5
+class World():
+    def __init__(self,data):
+        self.tile_list = []
+
+        row_count = 0
+        for row in data:
+            column_count = 0
+            for tile in row:
+                if tile == 1:
+                    self_img = pygame.transform.scale(dirt_img, (tile_size,tile_size))
+                    self_rect = self_img.get_rect()
+                    self_rect.x = column_count * tile_size
+                    self_rect.y = row_count * tile_size
+                    tile = (self_img,self_rect)
+                    self.tile_list.append(tile)
+                column_count += 1
+            row_count += 1
+        
+    def draw(self):
+        for tile in self.tile_list:
+            win.blit(tile[0],tile[1])
+#-----------------------------------------------------------------------
+
+# ------------------------------character setup------------------------------
+class Player():
+    def __init__(self, x, y):
+        self.img = pygame.transform.scale(player_img,(tile_size,tile_size*1.75))
+        self.rect = self.img.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.width = self.img.get_width()
+        self.height = self.img.get_height()
+        self.vel = 5
+        self.jump_vel = 0
+
+    def update(self):
+        dx = 0
+        dy = 0
+
+        # player movement
+        key = pygame.key.get_pressed()
+        
+        if key[pygame.K_LEFT]:
+            dx -= self.vel
+        if key[pygame.K_RIGHT]:
+            dx += self.vel
+        if key[pygame.K_UP] and self.jump_vel == 0:
+            self.jump_vel = -15.1
+
+        # gravity
+        self.jump_vel += 1
+        if self.jump_vel > 15:
+            self.jump_vel = 15
+        dy += self.jump_vel
+
+        # checking for collision
+        for tile in world.tile_list:
+            if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+                dx = 0
+            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+                # if jumping, if hits head
+                if self.jump_vel < 0:
+                    dy = tile[1].bottom - self.rect.top
+                    self.jump_vel = 0.1
+                # if falling, if hits the ground
+                elif self.jump_vel >= 0:
+                    dy = tile[1].top - self.rect.bottom
+                    self.jump_vel = 0
+
+        # update coordinates
+        self.rect.x += dx
+        self.rect.y += dy
+
+        # drawing character onto screen
+        win.blit(self.img,self.rect)
+
+# ---------------------------------------------------------------------------
+
+world = World(lvl1_data)
 
 # Setting the starting x and y positions of the character
 x = 100
 y = 650
-# ---------------------------------------------
+
+player = Player(x,y)
 
 # Game loop
 run = True
@@ -38,30 +130,16 @@ while run:
             run = False
 
     # setting background colour
-    win.fill((255,255,255))
+    win.fill((0,0,0))
 
-    # drawing the character
-    pygame.draw.rect(win, (0,0,0), (x,y,width,height), 0, 10)
+    # drawing the level onto the screen
+    world.draw()
 
-# ---------------character movement code---------------
+    # updating player
+    player.update()
+
     key = pygame.key.get_pressed()
-    # as long as a key is being held, the character moves
-    # only able to move within a boundry of the edge of the screen
-
-    if (key[pygame.K_LEFT] or key[pygame.K_a]) and x > vel:
-        x -= vel
-
-    elif (key[pygame.K_RIGHT] or key[pygame.K_d]) and x < win_width - width - vel:
-        x += vel
-    
-    elif (key[pygame.K_DOWN] or key[pygame.K_s]) and y < win_height - height - vel:
-        y += vel
-    
-    elif (key[pygame.K_UP] or key[pygame.K_w]) and y > vel:
-        y -= vel
-# -----------------------------------------------------
-
-    elif key[pygame.K_ESCAPE]:
+    if key[pygame.K_ESCAPE]:
         run = False
 
     # updates the game constantly so that the drawings appear and change
