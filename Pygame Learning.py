@@ -16,7 +16,27 @@ pygame.display.set_caption('Demo Platformer')
 dirt_img = pygame.image.load('images/dirt.png')
 player_img = pygame.image.load('images/white_character_square.png')
 restart_img = pygame.image.load('images/restart.jpg')
+start_img = pygame.image.load('images/start.jpg')
+quit_img = pygame.image.load('images/quit.jpg')
 # --------------------------------------------------------------------------
+
+# ------------------------------loading fonts------------------------------
+title_font = pygame.font.SysFont('Bauhaus 93', 50)
+# -------------------------------------------------------------------------
+
+# ------------------------------defining colours------------------------------
+white = (255,255,255)
+black = (0,0,0)
+# ---------------------------------------------------------------------------
+
+# ------------------------------general game variables------------------------------
+start_menu = True
+# ----------------------------------------------------------------------------------
+
+# making a function to draw text on the screen
+def draw_text(text, font, colour, x, y):
+    img = font.render(text, True, colour)
+    win.blit(img, (x, y))
 
 # ------------------------------world setup------------------------------
 lvl1_data = [
@@ -138,7 +158,7 @@ class Button():
             self.clicked == False
 
         win.blit(self.img, self.rect)
-        
+
         return action
 # ------------------------------------------------------------------------
 
@@ -155,6 +175,11 @@ player = Player(x,y)
 # loading restart button
 restart_button = Button(win_width - tile_size + tile_size*0.25/2, tile_size*0.25/2, restart_img, tile_size*0.75, tile_size*0.75)
 
+# loading start and quit buttons for the start menu
+start_button = Button(win_width / 2, win_height / 2 - 100, start_img, tile_size*3, tile_size)
+quit_button = Button(win_width / 2, win_height / 2 + 100, quit_img, tile_size*3, tile_size)
+
+
 # Game loop
 run = True
 while run:
@@ -166,18 +191,25 @@ while run:
             run = False
 
     # setting background colour
-    win.fill((0,0,0))
+    win.fill(black)
 
-    # drawing the level onto the screen
-    world.draw()
+    if start_menu:
+        draw_text('Demo Platformer', title_font, white, win_width / 2 - 200, 100)
 
-    # updating player
-    player.update()
+        if start_button.draw():
+            start_menu = False
+        if quit_button.draw():
+            run = False
+    else:
+        # drawing the level onto the screen
+        world.draw()
 
-    # drawing restart button
-    restart_button.draw()
-    if restart_button.draw():
-        player.start(x, y)
+        # updating player
+        player.update()
+
+        # drawing restart button
+        if restart_button.draw():
+            player.start(x, y)
 
     key = pygame.key.get_pressed()
     if key[pygame.K_ESCAPE]:
